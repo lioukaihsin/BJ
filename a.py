@@ -1,154 +1,210 @@
 import random
 import urllib
+import wsgiref.handlers
 
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-class game(db.Model):
-  gameName = db.StringProperty()
-  player = db.StringProperty()
-  handCard = db.ListProperty(int)
-  chip = db.IntegerProperty(default=-1)
-  choice = db.BooleanProperty(default=True)
 
-
-def gameNameKey(gameName=None):
-  return db.Key.from_path('bj', gameName or 'default_gameName')
+class Game(db.Model):
+  card           = db.ListProperty(int)
+  playerHandCard = db.ListProperty(int)
+  bankerHandCard = db.ListProperty(int)
+  bankerPK       = db.BooleanProperty(default=False)
+  gameName       = db.StringProperty()
+  chip           = db.IntegerProperty(default=100)
+  wantNewGame    = db.BooleanProperty(default=True)
+  wantMoreCard   = db.BooleanProperty(default=False)
 
 
 class MainPage(webapp.RequestHandler):
   def get(self):
-    self.response.out.write("Do you want to play blackjack?")
+    if self.request.get('repeat') == 'True':
+      self.response.out.write("The name has been used, please use else name.</br>")
+    self.response.out.write("Please enter the name of the game:")
     self.response.out.write("""
       <html>
       <body>
-      <form action="/newGame" method="post">
+      <form action="/crgn" method="post">
       <input type="text" name="gameName" cols="10">
-      <input type="submit" value="yes">
+      <input type="submit" value="Go">
       </form>
       </body>
       </html>
       """)
 
-class newGame(webapp.RequestHandler):
+
+class checkRepeatedGameName(webapp.RequestHandler):
   def post(self):
-    gamename = self.request.get('gameName')
-    aGame = game(parent=gameNameKey(gamename))
-    aGame.chip = 100
-    aGame.gameName = gamename
-    aGame.choice = True
-    aGame.put()
-    self.redirect('/bj?' + urllib.urlencode({'gameName': gamename}))
+    gameName = self.request.get('gameName')
+    result = Game.all().filter('gameName',gameName)
+    if result.count() > 0:
+      self.redirect('/?' + urllib.urlencode({'repeat': True}))
+    else:
+      self.redirect('/newGame?' + urllib.urlencode({'gameName': gameName}))
+
+
+class newGame(webapp.RequestHandler):
+  def get(self):
+    game = Game()
+    game.gameName = self.request.get('gameName')
+    for i in range(52): game.card.append(i)
+    game.put()
+    self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
 
 
 class bj(webapp.RequestHandler):
   def get(self):
-    gamename = self.request.get('gameName')
-    aGame = game(parent=gameNameKey(gamename))
+    key = self.request.get('key')
+    game = Game.get(key)
 
-    self.response.out.write("Name of the game: " + str(aGame.gameName))
-    
-    self.response.out.write("</br>Now your chips remain $" + str(aGame.chip))
-    self.response.out.write("</br>Want to play again?[y/n]")
-
-#    aGame = db.GqlQuery("SELECT * FROM game", gameNameKey(gameName))
-    
-
-    if aGame.chip > 0 and aGame.choice == 'y':
-      self.response.out.write("</br>Now your chips remain $" + str(aGame.chip))
-      self.response.out.write("</br>Want to play again?[y/n]")
+    if game.chip > 0 and game.wantMoreCard == True:
+      self.response.out.write("Name of the game: " + str(game.gameName))
+      self.response.out.write("</br>Now your chips remain $" + str(game.chip))
+      self.response.out.write("</br>Your hand cards:")
+      self.response.out.write(show(game.playerHandCard))
+      (playerBomb, playerPoint) = cal(game.playerHandCard)
+      self.response.out.write("</br>total points: " + str(playerPoint))
+      if game.bankerPK == True:
+        self.response.out.write("</br>Banker's cards are:")
+        self.response.out.write(show(game.bankerHandCard))
+        (bankerBomb, bankerPoint) = cal(game.bankerHandCard)
+        self.response.out.write("</br>Banker's total points: " + str(bankerPoint))
+        if bankerBomb or bankerPoint < playerPoint:
+          self.response.out.write("</br>You win.")
+          game.chip += 10
+        else:
+          self.response.out.write("</br>You lose.")
+          game.chip -= 10
+        # reset for a new game
+        game.bankerPK = False
+        game.wantMoreCard = False
+        game.card = []
+        for i in range(52): game.card.append(i)
+        game.playerHandCard = []
+        game.bankerHandCard = []
+        game.put()
+        self.response.out.write("</br>Want to play again?[y/n]")
+        self.response.out.write("""
+          <form action="/cardDrawing" method="post">
+          """)
+        self.response.out.write('<input type="hidden" name="key" value="'+key+'">')
+        self.response.out.write("""
+          <input type="submit" name="wantNewGame" value="y">
+          <input type="submit" name="wantNewGame" value="n">
+          </form>
+          """)
+      else:
+        if playerBomb == True:
+          self.response.out.write("</br>You bomb!!!")
+          game.chip -= 10
+          # reset for a new game
+          game.wantMoreCard = False
+          game.card = []
+          for i in range(52): game.card.append(i)
+          game.playerHandCard = []
+          game.put()
+          self.response.out.write("</br>Want to play again?[y/n]")
+          self.response.out.write("""
+            <form action="/cardDrawing" method="post">
+            """)
+          self.response.out.write('<input type="hidden" name="key" value="'+key+'">')
+          self.response.out.write("""
+            <input type="submit" name="wantNewGame" value="y">
+            <input type="submit" name="wantNewGame" value="n">
+            </form>
+            """)
+        else:
+          self.response.out.write("</br></br>Do you want one more card?")
+          self.response.out.write("""
+            <form action="/cardDrawing" method="post">
+            """)
+          self.response.out.write('<input type="hidden" name="key" value="'+key+'">')
+          self.response.out.write("""
+            <input type="submit" name="wantMoreCard" value="y">
+            <input type="submit" name="wantMoreCard" value="n">
+            </form>""")
+    elif game.chip > 0 and game.wantNewGame == True:
+      self.response.out.write("Name of the game: " + str(game.gameName))
+      self.response.out.write("</br>Now your chips remain $" + str(game.chip))
+      self.response.out.write("</br>Game start?[y/n]")
       self.response.out.write("""
-        <form action="/test" method="post">
-        <input type="submit" name="choice1" value="y">
-        <input type="submit" name="choice1" value="n">
+        <form action="/cardDrawing" method="post">
+        """)
+      self.response.out.write('<input type="hidden" name="key" value="'+key+'">')
+      self.response.out.write("""
+        <input type="submit" name="wantNewGame" value="y">
+        <input type="submit" name="wantNewGame" value="n">
         </form>
         """)
-    
-
-  def gaming():    
-    
-    # Create the original card set
-    card = []
-    for i in range(52):
-      card.append(i)
-    
-    playerCard = []
-    oneMoreCard = 'y'
-    while oneMoreCard is 'y':
-      thisCard = card.pop(card.index(random.choice(card)))
-      playerCard.append(thisCard)
-      (bomb, point) = cal(playerCard)
-      show(playerCard)
-      print "total points: " + str(point)
-      if bomb:
-        print "You lose."
-        chip[0] -= 10
-        return
-      print "Do you want to have one more card?[y/n]"
-      oneMoreCard = raw_input()
-    
-    bankerHandCard = []
-    bankerPoint = 0
-    while bankerPoint < 18:
-      thisCard = card.pop(card.index(random.choice(card)))
-      bankerHandCard.append(thisCard)
-      (bomb, bankerPoint) = cal(bankerHandCard)
-    print "Banker's cards are:",
-    show(bankerHandCard)
-    print "Banker's total points: " + str(bankerPoint)
-    if bomb or bankerPoint < point:
-      print "You win."
-      chip[0] += 10
     else:
-      print "You lose."
-      chip[0] -= 10
-  
+      self.response.out.write("byebye")
     
-  #  for i in range(52):
-  #    thisCard = newCardSet.pop(newCardSet.index(random.choice(newCardSet)))
-  #    print chr(3+thisCard/13)+str(thisCard%13+1)
+
+class cardDrawing(webapp.RequestHandler):
+  def post(self):
+    key = self.request.get('key')
+    game = Game.get(key)
+
+    if self.request.get('wantNewGame') == 'n':
+      game.wantNewGame = False
+      game.put()
+      self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+    elif self.request.get('wantMoreCard') == 'n':
+      game.bankerPK = True
+      card = game.card
+      bankerPoint = 0
+      while bankerPoint < 18:
+        thisCard = card.pop(card.index(random.choice(card)))
+        game.bankerHandCard.append(thisCard)
+        (temp, bankerPoint) = cal(game.bankerHandCard)
+      game.put()
+      self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+    else:
+      card = game.card
+      thisCard = card.pop(card.index(random.choice(card)))
+      game.playerHandCard.append(thisCard)
+      game.wantMoreCard = True
+      game.put()
+      self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+
+
+# to show one's hand card
+#return handcard_string
+def show(handCard):
+  output = ''
+  for i in range(len(handCard)): 
+    if   handCard[i] / 13 == 0: output += " s "
+    elif handCard[i] / 13 == 1: output += " h "
+    elif handCard[i] / 13 == 2: output += " d "
+    elif handCard[i] / 13 == 3: output += " c "
+    output += str(handCard[i] % 13 + 1)
+  return output
+
   
-  
-class judge(webapp.RequestHandler):  
-  # to calculate the pts of handcard and whether it bombs or not
-  # return (bomb_or_not,point)
-  def cal(handCard):
-    handCardCopy = handCard[:]
-    point = 0
-    while len(handCardCopy) > 0:
-      temp = handCardCopy.pop()%13+1
-      if temp < 11:
-        point += temp
-      else:
-        point += 10
+# to calculate the pts of handcard and whether it bombs or not
+# return (bomb_or_not,point)
+def cal(handCard):
+  handCardCopy = handCard[:]
+  point = 0
+  while len(handCardCopy) > 0:
+    temp = handCardCopy.pop()%13+1
+    if temp < 11:
+      point += temp
+    else:
+      point += 10
       
-      if point > 21:
-        return (True, point)
-    return (False, point)
+    if point > 21:
+      return (True, point)
+  return (False, point)
   
   
-  def show(handCard):
-    for i in range(len(handCard)): 
-      if   handCard[i] / 13 == 0: print """
-      <img src="http://www.writerscafe.org/uploads/stories/03225200-1233894394.jpg"></img>
-      """ +str(i%13) ,
-      elif handCard[i] / 13 == 1: print """
-          <img src="http://heartoftheschool.edublogs.org/files/2010/09/beating_heart.gif"></img>
-          """ +str(i%13),
-      elif handCard[i] / 13 == 2: print """
-          <img src="http://www.wordans.us/wordansfiles/images/2011/4/27/77598/77598_340.jpg?1303937078"></img>
-          """ +str(i%13),
-      elif handCard[i] / 13 == 3: print """
-          <img src="http://www.writerscafe.org/uploads/stories/03225200-1233894394.jpg"></img>
-          """ +str(i%13) ,
-    print
-  
-
-
 myApp = webapp.WSGIApplication([('/', MainPage),
                                 ('/bj', bj),
-                                ('/newGame', newGame)],
+                                ('/newGame', newGame),
+                                ('/cardDrawing', cardDrawing),
+                                ('/crgn', checkRepeatedGameName)],
                                 debug=True)
 
 def main():
