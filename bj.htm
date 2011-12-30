@@ -6,44 +6,44 @@
 
 {% if firstGame or wantNewGame or wantMoreCard %}
 
-Name of the game: {{gameName}}
-</br>Now your chips remain ${{chip}}
-
-{% if firstGame %}
-  </br>Game start?[y/n]
-{% else %}
-  </br>Your hand cards:{{playerHandCard}}
-  </br>total points: {{playerPoint}}
-  {% if wantMoreCard %}
-    {% if bankerPK %}
-      </br>Banker's cards:{{bankerHandCard}}
-      </br>Banker's total points: {{bankerPoint}}
-      {% if playerWin %}
-        </br>You win.
-      {% else %}
-        </br>You lose.
-      {% endif %}
-      </br>Want to play again?[y/n]
-    {% else %}
-      {% if playerBomb %}
-        </br>You bomb!!!
+  Name of the game: {{gameName}}
+  </br>Now your chips remain ${{chip}}
+  
+  {% if firstGame %}
+    </br>Game start?[y/n]
+  {% else %}
+    </br>Your hand cards:{{playerHandCard}}
+    </br>total points: {{playerPoint}}
+    {% if wantMoreCard %}
+      {% if bankerPK %}
+        </br>Banker's cards:{{bankerHandCard}}
+        </br>Banker's total points: {{bankerPoint}}
+        {% if playerWin %}
+          </br>You win.
+        {% else %}
+          </br>You lose.
+        {% endif %}
         </br>Want to play again?[y/n]
       {% else %}
-        </br>Do you want one more card?
+        {% if playerBomb %}
+          </br>You bomb!!!
+          </br>Want to play again?[y/n]
+        {% else %}
+          </br>Do you want one more card?
+        {% endif %}
       {% endif %}
     {% endif %}
   {% endif %}
-{% endif %}
-<form action="{{cardDrawing_url}}" method="post">
-<input type="hidden" name="key" value="{{key}}">
-{% if firstGame or gameOver %}
-  <input type="submit" name="wantNewGame" value="y">
-  <input type="submit" name="wantNewGame" value="n">
-{% else %}
-  <input type="submit" name="wantMoreCard" value="yy">
-  <input type="submit" name="wantMoreCard" value="nn">
-{% endif %}
-  </form>  
+  <form action="{{cardDrawing_url}}" method="post">
+  <input type="hidden" name="key" value="{{key}}">
+  {% if firstGame or gameOver %}
+    <input type="submit" name="wantNewGame" value="y">
+    <input type="submit" name="wantNewGame" value="n">
+  {% else %}
+    <input type="submit" name="wantMoreCard" value="yy">
+    <input type="submit" name="wantMoreCard" value="nn">
+  {% endif %}
+    </form>  
 
 {% else %}
   byebye

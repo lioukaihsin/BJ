@@ -9,6 +9,9 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import users
 from google.appengine.ext.webapp import template
 
+class UserPrefs(db.Model):
+  user = db.UserProperty()
+  money = db.IntegerProperty()
 
 class Game(db.Model):
   card           = db.ListProperty(int)
@@ -26,13 +29,13 @@ class Game(db.Model):
 class MainPage(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
-    if user: template_value = {'uesrNickName': user.nickname()}
     template_value = {
                       'repeat':self.request.get('repeat'),
                       'logout_url': users.create_logout_url("/"),
                       'login_url': users.create_login_url("/"),
                       'crgn_url': "/bj/crgn",
-                      'user': user
+                      'user': user,
+                      'userNickName': user.nickname(),
                       }
     path = os.path.join(os.path.dirname(__file__), 'index.htm')
     self.response.out.write(template.render(path, template_value))
@@ -53,6 +56,15 @@ class newGame(webapp.RequestHandler):
     game = Game()
     game.gameName = self.request.get('gameName')
     for i in range(52): game.card.append(i)
+    user = users.get_current_user()
+    userprefs = UserPrefs.all().filter('user', user).get()
+    if userprefs:
+      game.chip = userprefs.money
+    else:
+      userprefs = UserPrefs()
+      userprefs.user = user
+      userprefs.money = 100
+      userprefs.put()
     game.put()
     self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
 
@@ -62,23 +74,26 @@ class bj(webapp.RequestHandler):
     key = self.request.get('key')
     game = db.get(key)
     
+    userprefs = UserPrefs.all().filter('user', users.get_current_user()).get()
+    game.chip = userprefs.money
+    
     enoughChip = game.chip > 0
+    playerWin = False
     (playerBomb, playerPoint) = cal(game.playerHandCard)
+    (bankerBomb, bankerPoint) = cal(game.bankerHandCard)
     if playerBomb:
       game.chip -= 10
       game.gameOver = True
-      game.put()
-    playerWin = False
     if game.bankerPK:
-      (bankerBomb, bankerPoint) = cal(game.bankerHandCard)
       if bankerBomb or bankerPoint < playerPoint:
         playerWin = True
         game.chip += 10
       else:
         game.chip -= 10
       game.gameOver = True
-      game.put()
-    (bankerBomb, bankerPoint) = cal(game.bankerHandCard)
+    game.put()
+    userprefs.money = game.chip
+    userprefs.put()
     template_value = {
                       'gameName': game.gameName,
                       'key': key,
@@ -103,13 +118,13 @@ class bj(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_value))
     if game.gameOver:
       # reset for a new game
+      game.gameOver = False
       game.bankerPK = False
       game.wantMoreCard = False
       game.card = []
       for i in range(52): game.card.append(i)
       game.playerHandCard = []
       game.bankerHandCard = []
-      game.gameOver = False
       game.put()
     
 
