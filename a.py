@@ -27,8 +27,8 @@ class Game(db.Model):
   date = db.DateTimeProperty(auto_now_add=True)
   cardnumber     = db.IntegerProperty(default=-1)
   card_get_5     = db.BooleanProperty(default=False)
-
-
+  betcoin        = db.IntegerProperty(default=10)
+  coinimput        = db.BooleanProperty(default=True)
     
 
 class MainPage(webapp.RequestHandler):
@@ -96,10 +96,10 @@ class bj(webapp.RequestHandler):
     (playerBomb, playerPoint) = cal(game.playerHandCard)
     (bankerBomb, bankerPoint) = cal(game.bankerHandCard)
     if playerBomb:
-      game.chip -= 10
+      game.chip -= game.betcoin
       game.gameOver = True
     elif game.cardnumber >= 5:
-      game.chip +=20
+      game.chip += 2*game.betcoin
       game.gameOver = True
       game.card_get_5 =True
       game.wantMoreCard = False
@@ -107,9 +107,9 @@ class bj(webapp.RequestHandler):
     if game.bankerPK:
       if bankerBomb or bankerPoint < playerPoint :
         playerWin = True
-        game.chip += 10
+        game.chip += game.betcoin
       else:
-        game.chip -= 10
+        game.chip -= game.betcoin
       game.gameOver = True
     game.put()
     userprefs.money = game.chip
@@ -134,6 +134,8 @@ class bj(webapp.RequestHandler):
                       'bankerPoint': bankerPoint,
                       'playerWin': playerWin,
                       'card_get_5':game.card_get_5,
+                      'betcoin':game.betcoin,
+                      'coinimput':game.coinimput
                       }
     path = os.path.join(os.path.dirname(__file__), 'bj.htm')
     self.response.out.write(template.render(path, template_value))
@@ -148,6 +150,8 @@ class bj(webapp.RequestHandler):
       game.bankerHandCard = []
       game.card_get_5 = False
       game.cardnumber = 0
+      game.coinimput = True
+      game.betcoin = 10
       game.put()
     
 
@@ -155,7 +159,15 @@ class cardDrawing(webapp.RequestHandler):
   def post(self):
     key = self.request.get('key')
     game = db.get(key)
-    
+    if self.request.get('addcoin') == '+10':
+      game.betcoin += 10
+      game.coinimput = True
+      game.put()
+      self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+    else :
+      game.coinimput = False
+      game.cardnumber = 0    
+      game.put()
     if game.firstGame:
       game.firstGame = False
       game.put()
@@ -174,12 +186,16 @@ class cardDrawing(webapp.RequestHandler):
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     else:
-      card = game.card
-      thisCard = card.pop(card.index(random.choice(card)))
-      game.playerHandCard.append(thisCard)
-      game.wantMoreCard = True
-      game.put()
-      self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+      if game.coinimput == True:
+        game.put()
+        self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
+      else:  
+        card = game.card
+        thisCard = card.pop(card.index(random.choice(card)))
+        game.playerHandCard.append(thisCard)
+        game.wantMoreCard = True
+        game.put()
+        self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
 
 
 # to show one's hand card
