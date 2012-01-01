@@ -4,7 +4,7 @@
 </head>
 <body>
 
-{% if firstGame or wantNewGame or wantMoreCard %}
+{% if firstGame or wantNewGame or wantMoreCard or card_get_5 %}
 
   Name of the game: {{gameName}}
   </br>Now your chips remain ${{chip}}
@@ -14,7 +14,7 @@
   {% else %}
     </br>Your hand cards:{{playerHandCard}}
     </br>total points: {{playerPoint}}
-    {% if wantMoreCard %}
+    {% if wantMoreCard or card_get_5 %}
       {% if bankerPK %}
         </br>Banker's cards:{{bankerHandCard}}
         </br>Banker's total points: {{bankerPoint}}
@@ -29,7 +29,11 @@
           </br>You bomb!!!
           </br>Want to play again?[y/n]
         {% else %}
-          </br>Do you want one more card?
+          {% if card_get_5 %}
+            <br>You win!! You get up to 5 cards!!You get bonus 20 points
+          {% else %}   
+            </br>Do you want one more card?
+          {% endif %}
         {% endif %}
       {% endif %}
     {% endif %}

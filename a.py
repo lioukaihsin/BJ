@@ -25,6 +25,8 @@ class Game(db.Model):
   wantNewGame    = db.BooleanProperty(default=False)
   wantMoreCard   = db.BooleanProperty(default=False)
   date = db.DateTimeProperty(auto_now_add=True)
+  cardnumber     = db.IntegerProperty(default=-1)
+  card_get_5     = db.BooleanProperty(default=False)
 
 
     
@@ -84,6 +86,7 @@ class bj(webapp.RequestHandler):
   def get(self):
     key = self.request.get('key')
     game = db.get(key)
+    game.cardnumber = game.cardnumber+1
     
     userprefs = UserPrefs.all().filter('user', users.get_current_user()).get()
     game.chip = userprefs.money
@@ -95,8 +98,14 @@ class bj(webapp.RequestHandler):
     if playerBomb:
       game.chip -= 10
       game.gameOver = True
+    elif game.cardnumber >= 5:
+      game.chip +=20
+      game.gameOver = True
+      game.card_get_5 =True
+      game.wantMoreCard = False
+      
     if game.bankerPK:
-      if bankerBomb or bankerPoint < playerPoint:
+      if bankerBomb or bankerPoint < playerPoint :
         playerWin = True
         game.chip += 10
       else:
@@ -124,6 +133,7 @@ class bj(webapp.RequestHandler):
                       'bankerBomb': bankerBomb,
                       'bankerPoint': bankerPoint,
                       'playerWin': playerWin,
+                      'card_get_5':game.card_get_5,
                       }
     path = os.path.join(os.path.dirname(__file__), 'bj.htm')
     self.response.out.write(template.render(path, template_value))
@@ -136,6 +146,8 @@ class bj(webapp.RequestHandler):
       for i in range(52): game.card.append(i)
       game.playerHandCard = []
       game.bankerHandCard = []
+      game.card_get_5 = False
+      game.cardnumber = 0
       game.put()
     
 
@@ -179,7 +191,16 @@ def show(handCard):
     elif handCard[i] / 13 == 1: output += """ <img src="http://t0.gstatic.com/images?q=tbn:ANd9GcR3tz7Vuqp8r_0EvUT6YxpAAb8xdbsG2BX2zy_hIOYFibts_DLfkp2VyA"width ="36" height="36"></img> """
     elif handCard[i] / 13 == 2: output += """<img src="http://www.wordans.us/wordansfiles/images/2011/4/27/77598/77598_340.jpg?1303937078"width ="36" height="36"></img>"""
     elif handCard[i] / 13 == 3: output += """<img src="http://www.veryicon.com/icon/png/Object/Las%20Vegas%202/Spade.png"width ="36" height="36"></img>"""
-    output += str(handCard[i] % 13 + 1)
+    if (handCard[i] % 13 + 1) ==1:
+      output += 'A'
+    elif (handCard[i] % 13 + 1) ==11:
+      output += 'J'
+    elif (handCard[i] % 13 + 1) ==12:
+      output += 'Q'
+    elif (handCard[i] % 13 + 1) ==13:
+      output += 'K'
+    else:
+      output += str(handCard[i] % 13 + 1)
   return output
 
   
