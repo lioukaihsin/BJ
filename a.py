@@ -24,11 +24,21 @@ class Game(db.Model):
   gameOver       = db.BooleanProperty(default=False)
   wantNewGame    = db.BooleanProperty(default=False)
   wantMoreCard   = db.BooleanProperty(default=False)
+  date = db.DateTimeProperty(auto_now_add=True)
 
+
+    
 
 class MainPage(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    data = Game.all()
+    data.order('-date')
+    number = data.count()
+    show =''
+    for p in data:
+      show += (" " + (p.gameName))
+    show += ("<br> the total play time = " + str(number))
     template_value = {
                       'repeat':self.request.get('repeat'),
                       'logout_url': users.create_logout_url("/"),
@@ -36,6 +46,7 @@ class MainPage(webapp.RequestHandler):
                       'crgn_url': "/bj/crgn",
                       'user': user,
                       'userNickName': user.nickname(),
+                      'show':show,
                       }
     path = os.path.join(os.path.dirname(__file__), 'index.htm')
     self.response.out.write(template.render(path, template_value))
@@ -164,10 +175,10 @@ class cardDrawing(webapp.RequestHandler):
 def show(handCard):
   output = ''
   for i in range(len(handCard)): 
-    if   handCard[i] / 13 == 0: output += " s "
-    elif handCard[i] / 13 == 1: output += " h "
-    elif handCard[i] / 13 == 2: output += " d "
-    elif handCard[i] / 13 == 3: output += " c "
+    if   handCard[i] / 13 == 0: output += """<img src="http://www.veryicon.com/icon/png/Object/Las%20Vegas%202/Spade.png" width ="36" height="36"></img>"""
+    elif handCard[i] / 13 == 1: output += """ <img src="http://t0.gstatic.com/images?q=tbn:ANd9GcR3tz7Vuqp8r_0EvUT6YxpAAb8xdbsG2BX2zy_hIOYFibts_DLfkp2VyA"width ="36" height="36"></img> """
+    elif handCard[i] / 13 == 2: output += """<img src="http://www.wordans.us/wordansfiles/images/2011/4/27/77598/77598_340.jpg?1303937078"width ="36" height="36"></img>"""
+    elif handCard[i] / 13 == 3: output += """<img src="http://www.veryicon.com/icon/png/Object/Las%20Vegas%202/Spade.png"width ="36" height="36"></img>"""
     output += str(handCard[i] % 13 + 1)
   return output
 
