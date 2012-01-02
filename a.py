@@ -126,6 +126,12 @@ class bj(webapp.RequestHandler):
       game.gameOver = True
     game.put()
     userprefs.money = game.chip
+    playercard = game.playerHandCard[:]
+    while len(playercard) < 5:
+        playercard.append(-1);
+    bankercard = game.bankerHandCard[:]
+    while len(bankercard) < 5:
+        bankercard.append(-1);
     
     userprefs.put()
     template_value = {
@@ -140,10 +146,10 @@ class bj(webapp.RequestHandler):
                       'wantNewGame': game.wantNewGame,
                       'firstGame': game.firstGame,
                       'gameOver': game.gameOver,
-                      'playerHandCard': show(game.playerHandCard),
+                      'playerHandCardNum': len(game.playerHandCard),
                       'playerBomb': playerBomb,
                       'playerPoint': playerPoint,
-                      'bankerHandCard': show(game.bankerHandCard),
+                      'bankerHandCardNum': len(game.bankerHandCard),
                       'bankerBomb': bankerBomb,
                       'bankerPoint': bankerPoint,
                       'playerWin': playerWin,
@@ -151,6 +157,16 @@ class bj(webapp.RequestHandler):
                       'betcoin':game.betcoin,
                       'coinimput':game.coinimput,
                       'coinrecord':game.coinrecord,
+                      'playercard1':playercard[0],
+                      'playercard2':playercard[1],
+                      'playercard3':playercard[2],
+                      'playercard4':playercard[3],
+                      'playercard5':playercard[4],
+                      'bankercard1':bankercard[0],
+                      'bankercard2':bankercard[1],
+                      'bankercard3':bankercard[2],
+                      'bankercard4':bankercard[3],
+                      'bankercard5':bankercard[4],
                       }
     path = os.path.join(os.path.dirname(__file__), 'bj.htm')
     self.response.out.write(template.render(path, template_value))

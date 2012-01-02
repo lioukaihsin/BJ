@@ -2,9 +2,40 @@
 <head>
   <title>Black Jack</title>
   <link rel="stylesheet" type="text/css" href="stylesheets/bj.css">
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
 </head>
 <body>
+	<script>
+		function showPlayer()
+		{
+			document.write("<table><tr><td><h2>Your hand cards:<h2></td>");
+			var playercard = new Array(5);
+			playercard[0] = {{playercard1}};
+			playercard[1] = {{playercard2}};
+			playercard[2] = {{playercard3}};
+			playercard[3] = {{playercard4}};
+			playercard[4] = {{playercard5}};
+			var cardNum = {{playerHandCardNum}};
+			for(var i=0; i<5 && i<cardNum; i++)
+				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (playercard[i]+1).toString() + ".jpg'></td>");
+			document.write("</tr></table>");
+		}
+		function showBanker()
+		{
+			document.write("<table><tr><td><h2>Banker's cards :<h2></td>");
+			var bankercard = new Array(5);
+			bankercard[0] = {{bankercard1}};
+			bankercard[1] = {{bankercard2}};
+			bankercard[2] = {{bankercard3}};
+			bankercard[3] = {{bankercard4}};
+			bankercard[4] = {{bankercard5}};
+			var cardNum = {{bankerHandCardNum}};
+			for(var i=0; i<5 && i<cardNum; i++)
+				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (bankercard[i]+1).toString() + ".jpg'></td>");
+			document.write("</tr></table>");
+		}
 
+	</script>
 {% if firstGame or wantNewGame or wantMoreCard or card_get_5 or coinimput %}
 
   Name of the game: {{gameName}}
@@ -14,11 +45,13 @@
     </br>Game start?[y/n]
   
   {% else %}
-    </br>Your hand cards:{{playerHandCard}}
+    </br>Your hand cards:{{playerHandCardNum}}
+    <script>showPlayer();</script>
     </br>total points: {{playerPoint}}
     {% if wantMoreCard or card_get_5 %}
       {% if bankerPK %}
-        </br>Banker's cards:{{bankerHandCard}}
+	  	</br>Banker's cards:{{bankerHandCardNum}}
+	  	<script>showBanker();</script>
         </br>Banker's total points: {{bankerPoint}}
         {% if playerWin %}
           </br>You win.
