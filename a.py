@@ -13,6 +13,7 @@ class UserPrefs(db.Model):
   user      = db.UserProperty()
   money     = db.IntegerProperty()
   isPlaying = db.BooleanProperty(default=False)
+  user_coin_record = db.ListProperty(int)
 
 
 class Game(db.Model):
@@ -31,6 +32,7 @@ class Game(db.Model):
   card_get_5     = db.BooleanProperty(default=False)
   betcoin        = db.IntegerProperty(default=10)
   coinimput        = db.BooleanProperty(default=True)
+  coinrecord     = db.ListProperty(int)
     
 
 class MainPage(webapp.RequestHandler):
@@ -75,6 +77,7 @@ class newGame(webapp.RequestHandler):
     userprefs = UserPrefs.all().filter('user', user).get()
     if userprefs:
       game.chip = userprefs.money
+      game.coinrecord = userprefs.user_coin_record
       if not userprefs.isPlaying:
         userprefs.isPlaying = True
         userprefs.put()
@@ -104,18 +107,22 @@ class bj(webapp.RequestHandler):
     if playerBomb:
       game.chip -= game.betcoin
       game.gameOver = True
+      game.coinrecord.append(-(game.betcoin))
     elif game.cardnumber >= 5:
       game.chip += 2*game.betcoin
       game.gameOver = True
       game.card_get_5 =True
       game.wantMoreCard = False
+      game.coinrecord.append(2*game.betcoin)
       
     if game.bankerPK:
       if bankerBomb or bankerPoint < playerPoint :
         playerWin = True
         game.chip += game.betcoin
+        game.coinrecord.append(game.betcoin)
       else:
         game.chip -= game.betcoin
+        game.coinrecord.append(-(game.betcoin))
       game.gameOver = True
     game.put()
     userprefs.money = game.chip
@@ -142,7 +149,8 @@ class bj(webapp.RequestHandler):
                       'playerWin': playerWin,
                       'card_get_5':game.card_get_5,
                       'betcoin':game.betcoin,
-                      'coinimput':game.coinimput
+                      'coinimput':game.coinimput,
+                      'coinrecord':game.coinrecord,
                       }
     path = os.path.join(os.path.dirname(__file__), 'bj.htm')
     self.response.out.write(template.render(path, template_value))
@@ -160,6 +168,8 @@ class bj(webapp.RequestHandler):
       game.coinimput = True
       game.betcoin = 10
       game.put()
+      userprefs.user_coin_record=game.coinrecord
+      userprefs.put()
     
 
 class cardDrawing(webapp.RequestHandler):
@@ -189,10 +199,11 @@ class cardDrawing(webapp.RequestHandler):
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     elif self.request.get('wantMoreCard') == 'nn':
+      (playerBomb, playerPoint) = cal(game.playerHandCard)
       game.bankerPK = True
       card = game.card
       bankerPoint = 0
-      while bankerPoint < playerPoint and (bankerPoint <= 21 or bankerPoint < 17) and bankerCardNum <= 5:
+      while bankerPoint < playerPoint and (bankerPoint <= 21 or bankerPoint < 17) and len(game.bankerHandCard) <= 5:
         thisCard = card.pop(card.index(random.choice(card)))
         game.bankerHandCard.append(thisCard)
         (temp, bankerPoint) = cal(game.bankerHandCard)
@@ -258,7 +269,7 @@ class onlineUsers(webapp.RequestHandler):
       playingUsers = userprefs.get()
       playingUsers_list.append(playingUsers.user.nickname())
     elif userprefs.count > 1:
-      playingUsers = userprefs.get()
+      playingUsers = userprefs
       for player in playingUsers:
         playingUsers_list.append(player.user.nickname())
     template_value = {

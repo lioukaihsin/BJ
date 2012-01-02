@@ -1,7 +1,6 @@
 <html>
 <head>
   <title>Black Jack</title>
-  <link rel="stylesheet" type="text/css" href="stylesheets/bj.css">
 </head>
 <body>
 
@@ -34,7 +33,7 @@
           {% if card_get_5 %}
             <br>You win!! You get up to 5 cards!!You get bonus {{betcoin}} points
           {% else %}   
-            </br></br>Do you want one more card?[y/n]
+            </br>Do you want one more card?
           {% endif %}
         {% endif %}
       {% endif %}
@@ -42,14 +41,13 @@
   {% endif %}
   <form action="{{cardDrawing_url}}" method="post">
   <input type="hidden" name="key" value="{{key}}">
-  your coin is: {{betcoin}}
   {% if firstGame or gameOver or coinimput %}
-    <input type="submit" name="addcoin" value="+10">
-    </br>
+    your coin is: {{betcoin}}<br>
+    <input type="submit" name="addcoin" value="+10"><br>
     <input type="submit" name="wantNewGame" value="y">
     <input type="submit" name="wantNewGame" value="n">
   {% else %}
-    </br>
+    your coin is: {{betcoin}}<br>
     <input type="submit" name="wantMoreCard" value="yy">
     <input type="submit" name="wantMoreCard" value="nn">
   {% endif %}
@@ -59,6 +57,12 @@
   byebye
 {% endif %}
 
+<ul>
+  <h2><b>the game record:</b></h2>
+  {% for item in coinrecord %}
+  <li>{{ item }}</li>
+  {% endfor %}
+</ul>
 </body>
 </html>
 
