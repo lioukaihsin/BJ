@@ -13,6 +13,7 @@ class UserPrefs(db.Model):
   user = db.UserProperty()
   money = db.IntegerProperty()
 
+
 class Game(db.Model):
   card           = db.ListProperty(int)
   playerHandCard = db.ListProperty(int)
@@ -78,6 +79,7 @@ class newGame(webapp.RequestHandler):
       userprefs.user = user
       userprefs.money = 100
       userprefs.put()
+    
     game.put()
     self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
 
@@ -86,7 +88,7 @@ class bj(webapp.RequestHandler):
   def get(self):
     key = self.request.get('key')
     game = db.get(key)
-    
+    game.cardnumber = game.cardnumber+1
     
     userprefs = UserPrefs.all().filter('user', users.get_current_user()).get()
     game.chip = userprefs.money
@@ -113,6 +115,7 @@ class bj(webapp.RequestHandler):
       game.gameOver = True
     game.put()
     userprefs.money = game.chip
+    
     userprefs.put()
     template_value = {
                       'gameName': game.gameName,
@@ -162,29 +165,29 @@ class cardDrawing(webapp.RequestHandler):
     if self.request.get('addcoin') == '+10':
       game.betcoin += 10
       game.coinimput = True
+      game.cardnumber = 0
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     else :
       game.coinimput = False
-      game.cardnumber = 0    
       game.put()
     if game.firstGame:
       game.firstGame = False
+      game.put()
+    if self.request.get('wantNewGame') == 'y':
+      game.cardnumber = 0
       game.put()
     if self.request.get('wantNewGame') == 'n':
       game.wantNewGame = False
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     elif self.request.get('wantMoreCard') == 'nn':
-      (playerBomb, playerPoint) = cal(game.playerHandCard)
       game.bankerPK = True
       card = game.card
       bankerPoint = 0
-      bankerCardNum = 0;
       while bankerPoint < playerPoint and (bankerPoint <= 21 or bankerPoint < 17) and bankerCardNum <= 5:
         thisCard = card.pop(card.index(random.choice(card)))
         game.bankerHandCard.append(thisCard)
-        bankerCardNum = bankerCardNum + 1;
         (temp, bankerPoint) = cal(game.bankerHandCard)
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
@@ -196,7 +199,6 @@ class cardDrawing(webapp.RequestHandler):
         card = game.card
         thisCard = card.pop(card.index(random.choice(card)))
         game.playerHandCard.append(thisCard)
-        game.cardnumber = game.cardnumber+1
         game.wantMoreCard = True
         game.put()
         self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
@@ -210,7 +212,7 @@ def show(handCard):
     if   handCard[i] / 13 == 0: output += """<img src="http://www.veryicon.com/icon/png/Object/Las%20Vegas%202/Spade.png" width ="36" height="36"></img>"""
     elif handCard[i] / 13 == 1: output += """ <img src="http://t0.gstatic.com/images?q=tbn:ANd9GcR3tz7Vuqp8r_0EvUT6YxpAAb8xdbsG2BX2zy_hIOYFibts_DLfkp2VyA"width ="36" height="36"></img> """
     elif handCard[i] / 13 == 2: output += """<img src="http://www.wordans.us/wordansfiles/images/2011/4/27/77598/77598_340.jpg?1303937078"width ="36" height="36"></img>"""
-    elif handCard[i] / 13 == 3: output += """<img src="http://www.veryicon.com/icon/png/Object/Las%20Vegas%202/Spade.png"width ="36" height="36"></img>"""
+    elif handCard[i] / 13 == 3: output += """<img src="http://www.iconpng.com/png/pictograms/club.png"width ="36" height="36"></img>"""
     if (handCard[i] % 13 + 1) ==1:
       output += 'A'
     elif (handCard[i] % 13 + 1) ==11:
