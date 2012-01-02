@@ -10,8 +10,9 @@ from google.appengine.api import users
 from google.appengine.ext.webapp import template
 
 class UserPrefs(db.Model):
-  user = db.UserProperty()
-  money = db.IntegerProperty()
+  user      = db.UserProperty()
+  money     = db.IntegerProperty()
+  isPlaying = db.BooleanProperty(default=False)
 
 
 class Game(db.Model):
@@ -74,6 +75,9 @@ class newGame(webapp.RequestHandler):
     userprefs = UserPrefs.all().filter('user', user).get()
     if userprefs:
       game.chip = userprefs.money
+      if not userprefs.isPlaying:
+        userprefs.isPlaying = True
+        userprefs.put()
     else:
       userprefs = UserPrefs()
       userprefs.user = user
@@ -179,6 +183,9 @@ class cardDrawing(webapp.RequestHandler):
       game.put()
     if self.request.get('wantNewGame') == 'n':
       game.wantNewGame = False
+      user = Users.get_current_user()
+      user.isPlaying = False
+      user.put()
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     elif self.request.get('wantMoreCard') == 'nn':
@@ -241,13 +248,32 @@ def cal(handCard):
     if point > 21:
       return (True, point)
   return (False, point)
+
+
+class onlineUsers(webapp.RequestHandler):
+  def get(self):
+    userprefs = UserPrefs.all().filter('isPlaying', True)
+    playingUsers_list = []
+    if userprefs.count() == 1:
+      playingUsers = userprefs.get()
+      playingUsers_list.append(playingUsers.user.nickname())
+    elif userprefs.count > 1:
+      playingUsers = userprefs.get()
+      for player in playingUsers:
+        playingUsers_list.append(player.user.nickname())
+    template_value = {
+                      'playingUsers_list': playingUsers_list,
+                      }
+    path = os.path.join(os.path.dirname(__file__), 'onlineUsers.htm')
+    self.response.out.write(template.render(path, template_value))
   
   
 myApp = webapp.WSGIApplication([('/', MainPage),
                                 ('/bj', bj),
                                 ('/bj/newGame', newGame),
                                 ('/bj/cardDrawing', cardDrawing),
-                                ('/bj/crgn', checkRepeatedGameName)],
+                                ('/bj/crgn', checkRepeatedGameName),
+                                ('/bj/onlineUsers', onlineUsers)],
                                 debug=True)
 
 def main():
