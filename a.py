@@ -86,7 +86,7 @@ class bj(webapp.RequestHandler):
   def get(self):
     key = self.request.get('key')
     game = db.get(key)
-    game.cardnumber = game.cardnumber+1
+    
     
     userprefs = UserPrefs.all().filter('user', users.get_current_user()).get()
     game.chip = userprefs.money
@@ -176,12 +176,15 @@ class cardDrawing(webapp.RequestHandler):
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     elif self.request.get('wantMoreCard') == 'nn':
+      (playerBomb, playerPoint) = cal(game.playerHandCard)
       game.bankerPK = True
       card = game.card
       bankerPoint = 0
-      while bankerPoint < 18:
+      bankerCardNum = 0;
+      while bankerPoint < playerPoint and (bankerPoint <= 21 or bankerPoint < 17) and bankerCardNum <= 5:
         thisCard = card.pop(card.index(random.choice(card)))
         game.bankerHandCard.append(thisCard)
+        bankerCardNum = bankerCardNum + 1;
         (temp, bankerPoint) = cal(game.bankerHandCard)
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
@@ -193,6 +196,7 @@ class cardDrawing(webapp.RequestHandler):
         card = game.card
         thisCard = card.pop(card.index(random.choice(card)))
         game.playerHandCard.append(thisCard)
+        game.cardnumber = game.cardnumber+1
         game.wantMoreCard = True
         game.put()
         self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
