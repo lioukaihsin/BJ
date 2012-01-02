@@ -58,10 +58,12 @@
 {% endif %}
 
 <ul>
-  <h2><b>the game record:</b></h2>
+<h2><b>the game record:</b></h2>
+  <ol>
   {% for item in coinrecord %}
-  <li>{{ item }}</li>
+<li><h4>{{ item }} point<h4></li>
   {% endfor %}
+  </ol>
 </ul>
 </body>
 </html>
