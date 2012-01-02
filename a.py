@@ -193,9 +193,9 @@ class cardDrawing(webapp.RequestHandler):
       game.put()
     if self.request.get('wantNewGame') == 'n':
       game.wantNewGame = False
-      user = Users.get_current_user()
-      user.isPlaying = False
-      user.put()
+      userprefs = UserPrefs.all().filter('user', users.get_current_user()).get()
+      userprefs.isPlaying = False
+      userprefs.put()
       game.put()
       self.redirect('/bj?' + urllib.urlencode({'key': game.key()}))
     elif self.request.get('wantMoreCard') == 'nn':
@@ -265,11 +265,8 @@ class onlineUsers(webapp.RequestHandler):
   def get(self):
     userprefs = UserPrefs.all().filter('isPlaying', True)
     playingUsers_list = []
-    if userprefs.count() == 1:
-      playingUsers = userprefs.get()
-      playingUsers_list.append(playingUsers.user.nickname())
-    elif userprefs.count > 1:
-      playingUsers = userprefs
+    if userprefs.count() > 1:
+      playingUsers = userprefs.fetch()
       for player in playingUsers:
         playingUsers_list.append(player.user.nickname())
     template_value = {
