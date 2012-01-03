@@ -2,15 +2,20 @@
 <head>
   <title>Black Jack</title>
   <meta http-equiv="refresh" content="10" />
+  <link rel="stylesheet" type="text/css" href="stylesheets/bj.css">
 </head>
 <body>
+<a href="welcome" target="2">News</a>&nbsp
+<a href="createGame" target="2">Create New Game</a>&nbsp
+<a href="bj/onlineUsers" target="2">Online Users</a> &nbsp
+<a href="http://www.ntumobile.org" target="_blank">Course Website</a>
+<span id="guide_user">
 {% if user %}
-  Welcome, {{userNickName}} (<a href="{{logout_url}}" target="2">sign out</a>)
+  {{userNickName}} (<a href="{{logout_url}}" target="2">sign out</a>)
 {% else %}
   <a href="{{login_url}}" target="2">Sign in or register</a>
 {% endif %}
-<a href="createGame" target="2">Create New Game</a>
-<a href="bj/onlineUsers" target="2">Online Users</a>
+</span>
 </body>
 </html>
 

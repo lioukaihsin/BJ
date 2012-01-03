@@ -1,9 +1,6 @@
-import random
-import urllib
 import wsgiref.handlers
 import os
 
-from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import users
@@ -21,11 +18,15 @@ class MainPage(webapp.RequestHandler):
 class guide(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
+    if user:
+      userNickName = user.nickname()
+    else:
+      userNickName = ''
     template_value = {
-                      'logout_orl': users.create_logout_url("/createGame"),
+                      'logout_url': users.create_logout_url("/createGame"),
                       'login_url': users.create_login_url("/createGame"),
                       'user': user,
-                      'userNickName': user.nickname()
+                      'userNickName': userNickName
                       }
     path = os.path.join(os.path.dirname(__file__), 'guide.htm')
     self.response.out.write(template.render(path, template_value))

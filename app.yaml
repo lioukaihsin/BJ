@@ -13,6 +13,7 @@ handlers:
 
 - url: /bj/.*
   script: a.py
+  login: required
 
 - url: /guide
   script: index.py
