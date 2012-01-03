@@ -6,7 +6,6 @@
 </head>
 <body>
 	<script>
-
 		function showPlayer()
 		{
 			document.write("<table><tr><td><h2>Your hand cards:<h2></td>");
@@ -19,8 +18,7 @@
 			var cardNum = {{playerHandCardNum}};
 			for(var i=0; i<5; i++)
 				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (playercard[i]+1).toString() + ".jpg'></td>");
-				document.write("<td><h2>total points: {{playerPoint}}<h2></td></tr></table>");
-			//	alert(456);
+			document.write("<td><h2>total points: {{playerPoint}}<h2></td></tr></table>");
 		}
 		function showBanker()
 		{
@@ -91,8 +89,7 @@
 {% else %}
   byebye
   {% endif %}
- <script>  showPlayerAnimate();</script>
-
+  <script>showPlayerAnimate()</script>
 <ul>
 <h2><b>the game record:</b></h2>
   <ol>
@@ -101,6 +98,38 @@
   {% endfor %}
   </ol>
 </ul>
+<script>
+function showPlayerAnimate()
+{
+	alert(123);
+	alert(123);
+	var playercard = new Array(5);
+	playercard[0] = {{playercard1}};
+	playercard[1] = {{playercard2}};
+	playercard[2] = {{playercard3}};
+	playercard[3] = {{playercard4}};
+	playercard[4] = {{playercard5}};
+	var cardNum = {{playerHandCardNum}};
+	var srcc = 'http://w.csie.org/~b00902102/card/card' + (playercard[cardNum-1]+1).toString() + '.jpg';
+	var lefft = '-=' + (100 - (50 * (cardNum-1))).toString();
+	var toop = '-=150';
+	alert(123);
+				
+	$('#deck1').animate({
+		alert(123);
+		opacity: 0.25,
+		left: '-=50',
+		top:  '-=50',
+	});/*, 10000, fuction() {
+			$('#deck1').fadeOut('normal', function() {
+				alert(123);
+				$('#deck1').attr('src', srcc);
+		});
+	});*/
+	alert(123);
+	//$('#deck1').fadeIn();
+}
+</script>
 
 </body>
 </html>
