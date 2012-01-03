@@ -6,6 +6,7 @@
 </head>
 <body>
 	<script>
+
 		function showPlayer()
 		{
 			document.write("<table><tr><td><h2>Your hand cards:<h2></td>");
@@ -18,7 +19,8 @@
 			var cardNum = {{playerHandCardNum}};
 			for(var i=0; i<5; i++)
 				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (playercard[i]+1).toString() + ".jpg'></td>");
-			document.write("<td><h2>total points: {{playerPoint}}<h2></td></tr></table>");
+				document.write("<td><h2>total points: {{playerPoint}}<h2></td></tr></table>");
+			//	alert(456);
 		}
 		function showBanker()
 		{
@@ -47,7 +49,7 @@
   {% else %}
     <!--</br>Your hand cards:{{playerHandCardNum}}-->
 	<script>showPlayer();</script>
-	<pre>                        <img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/carddeck.jpg' align=center></pre>
+	<pre>                        <img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img id='deck1' style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/carddeck.jpg' align=center></pre>
     {% if wantMoreCard or card_get_5 %}
       {% if bankerPK %}
 	  <!--	</br>Banker's cards:{{bankerHandCardNum}} -->
@@ -88,7 +90,8 @@
 
 {% else %}
   byebye
-{% endif %}
+  {% endif %}
+ <script>  showPlayerAnimate();</script>
 
 <ul>
 <h2><b>the game record:</b></h2>
@@ -98,6 +101,7 @@
   {% endfor %}
   </ol>
 </ul>
+
 </body>
 </html>
 
