@@ -1,0 +1,4 @@
+cron:
+- description: add 10 dollars to every user
+  url: /a1dteu
+  schedule: every 24 hours

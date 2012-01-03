@@ -1,9 +1,13 @@
-application: a
+application: apppotsapp
 version: 1
 runtime: python
 api_version: 1
 
 handlers:
+- url: /a1dteu
+  script: cron.py
+  login: admin
+
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico

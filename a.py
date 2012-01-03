@@ -47,8 +47,8 @@ class MainPage(webapp.RequestHandler):
     show += ("<br> the total play time = " + str(number))
     template_value = {
                       'repeat':self.request.get('repeat'),
-                      'logout_url': users.create_logout_url("/createGame"),
-                      'login_url': users.create_login_url("/createGame"),
+                      'logout_url': users.create_logout_url("/"),
+                      'login_url': users.create_login_url("/"),
                       'crgn_url': "/bj/crgn",
                       'user': user,
                       'userNickName': user.nickname(),
@@ -63,7 +63,7 @@ class checkRepeatedGameName(webapp.RequestHandler):
     gameName = self.request.get('gameName')
     result = Game.all().filter('gameName',gameName)
     if result.count() > 0:
-      self.redirect('/?' + urllib.urlencode({'repeat': True}))
+      self.redirect('/createGame?' + urllib.urlencode({'repeat': True}))
     else:
       self.redirect('/bj/newGame?' + urllib.urlencode({'gameName': gameName}))
 
@@ -281,11 +281,14 @@ class onlineUsers(webapp.RequestHandler):
   def get(self):
     userprefs = UserPrefs.all().filter('isPlaying', True)
     playingUsers_list = []
+    noUser = True
     if userprefs.count() > 0:
+      noUser = False
       for player in userprefs:
         playingUsers_list.append(player.user.nickname())
     template_value = {
                       'playingUsers_list': playingUsers_list,
+                      'noUser': noUser
                       }
     path = os.path.join(os.path.dirname(__file__), 'onlineUsers.htm')
     self.response.out.write(template.render(path, template_value))

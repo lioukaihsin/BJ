@@ -23,8 +23,8 @@ class guide(webapp.RequestHandler):
     else:
       userNickName = ''
     template_value = {
-                      'logout_url': users.create_logout_url("/createGame"),
-                      'login_url': users.create_login_url("/createGame"),
+                      'logout_url': users.create_logout_url("/"),
+                      'login_url': users.create_login_url("/"),
                       'user': user,
                       'userNickName': userNickName
                       }

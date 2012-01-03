@@ -8,12 +8,12 @@
 <a href="welcome" target="2">News</a>&nbsp
 <a href="createGame" target="2">Create New Game</a>&nbsp
 <a href="bj/onlineUsers" target="2">Online Users</a> &nbsp
-<a href="http://www.ntumobile.org" target="_blank">Course Website</a>
+<a href="http://www.ntumobile.org" target="_blank">NTUICS cource</a>
 <span id="guide_user">
 {% if user %}
-  {{userNickName}} (<a href="{{logout_url}}" target="2">sign out</a>)
+  {{userNickName}} (<a href="{{logout_url}}" target="_parent">sign out</a>)
 {% else %}
-  <a href="{{login_url}}" target="2">Sign in or register</a>
+  <a href="{{login_url}}" target="_parent">Sign in or register</a>
 {% endif %}
 </span>
 </body>

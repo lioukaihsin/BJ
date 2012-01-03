@@ -5,10 +5,14 @@
 </head>
 <body>
 
-{% for user in playingUsers_list %}
-  {{user}} is playing~
-  </br>
-{% endfor %}
+{% if noUser %}
+  Now there is no player.
+{% else %}
+  {% for user in playingUsers_list %}
+    {{user}} is playing~
+    </br>
+  {% endfor %}
+{% endif %}  
 
 
 </body>
