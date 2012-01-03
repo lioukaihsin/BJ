@@ -16,13 +16,13 @@
 			playercard[3] = {{playercard4}};
 			playercard[4] = {{playercard5}};
 			var cardNum = {{playerHandCardNum}};
-			for(var i=0; i<5 && i<cardNum; i++)
+			for(var i=0; i<5; i++)
 				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (playercard[i]+1).toString() + ".jpg'></td>");
-			document.write("</tr></table>");
+			document.write("<td><h2>total points: {{playerPoint}}<h2></td></tr></table>");
 		}
 		function showBanker()
 		{
-			document.write("<table><tr><td><h2>Banker's cards :<h2></td>");
+			document.write("<table><tr><td><h2>Banker ' s cards :<h2></td>");
 			var bankercard = new Array(5);
 			bankercard[0] = {{bankercard1}};
 			bankercard[1] = {{bankercard2}};
@@ -30,9 +30,9 @@
 			bankercard[3] = {{bankercard4}};
 			bankercard[4] = {{bankercard5}};
 			var cardNum = {{bankerHandCardNum}};
-			for(var i=0; i<5 && i<cardNum; i++)
+			for(var i=0; i<5; i++)
 				document.write("<td><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card" + (bankercard[i]+1).toString() + ".jpg'></td>");
-			document.write("</tr></table>");
+			document.write("<td><h2>Banker's total points: {{bankerPoint}}<h2></td></tr></table>");
 		}
 
 	</script>
@@ -45,14 +45,13 @@
     </br>Game start?[y/n]
   
   {% else %}
-    </br>Your hand cards:{{playerHandCardNum}}
-    <script>showPlayer();</script>
-    </br>total points: {{playerPoint}}
+    <!--</br>Your hand cards:{{playerHandCardNum}}-->
+	<script>showPlayer();</script>
+	<pre>                        <img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/card0.jpg' align=center><img style='border: 5px solid white' src='http://w.csie.org/~b00902102/card/carddeck.jpg' align=center></pre>
     {% if wantMoreCard or card_get_5 %}
       {% if bankerPK %}
-	  	</br>Banker's cards:{{bankerHandCardNum}}
+	  <!--	</br>Banker's cards:{{bankerHandCardNum}} -->
 	  	<script>showBanker();</script>
-        </br>Banker's total points: {{bankerPoint}}
         {% if playerWin %}
           </br>You win.
         {% else %}
