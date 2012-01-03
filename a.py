@@ -47,14 +47,14 @@ class MainPage(webapp.RequestHandler):
     show += ("<br> the total play time = " + str(number))
     template_value = {
                       'repeat':self.request.get('repeat'),
-                      'logout_url': users.create_logout_url("/"),
-                      'login_url': users.create_login_url("/"),
+                      'logout_url': users.create_logout_url("/createGame"),
+                      'login_url': users.create_login_url("/createGame"),
                       'crgn_url': "/bj/crgn",
                       'user': user,
                       'userNickName': user.nickname(),
                       'show':show,
                       }
-    path = os.path.join(os.path.dirname(__file__), 'index.htm')
+    path = os.path.join(os.path.dirname(__file__), 'createGame.htm')
     self.response.out.write(template.render(path, template_value))
 
 
@@ -281,9 +281,8 @@ class onlineUsers(webapp.RequestHandler):
   def get(self):
     userprefs = UserPrefs.all().filter('isPlaying', True)
     playingUsers_list = []
-    if userprefs.count() > 1:
-      playingUsers = userprefs.fetch()
-      for player in playingUsers:
+    if userprefs.count() > 0:
+      for player in userprefs:
         playingUsers_list.append(player.user.nickname())
     template_value = {
                       'playingUsers_list': playingUsers_list,
@@ -292,7 +291,7 @@ class onlineUsers(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_value))
   
   
-myApp = webapp.WSGIApplication([('/', MainPage),
+myApp = webapp.WSGIApplication([('/createGame', MainPage),
                                 ('/bj', bj),
                                 ('/bj/newGame', newGame),
                                 ('/bj/cardDrawing', cardDrawing),

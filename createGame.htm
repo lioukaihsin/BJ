@@ -1,0 +1,28 @@
+<html>
+<head>
+  <title>Black Jack</title>
+</head>
+<body>
+
+{% if user %}
+  Welcome, {{userNickName}} (<a href="{{logout_url}}">sign out</a>)
+{% else %}
+  <a href="{{login_url}}">Sign in or register</a>
+{% endif %}
+
+{% if repeat %}
+The name has been used, please use else name.
+{% endif %}
+
+</br>Please enter the name of the game.
+<form action="{{crgn_url}}" method="post">
+  <input type="text" name="gameName" cols="10">
+  <input type="submit" value="Go">
+</form>
+
+<br> the gamename has been used: {{show}}
+<a href="bj/onlineUsers"></br>See who is playing</a>
+
+</body>
+</html>
+

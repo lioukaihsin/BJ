@@ -1,0 +1,16 @@
+<html>
+<head>
+  <title>Black Jack</title>
+  <meta http-equiv="refresh" content="10" />
+</head>
+<body>
+{% if user %}
+  Welcome, {{userNickName}} (<a href="{{logout_url}}" target="2">sign out</a>)
+{% else %}
+  <a href="{{login_url}}" target="2">Sign in or register</a>
+{% endif %}
+<a href="createGame" target="2">Create New Game</a>
+<a href="bj/onlineUsers" target="2">Online Users</a>
+</body>
+</html>
+
