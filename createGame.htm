@@ -4,12 +4,6 @@
 </head>
 <body>
 
-{% if user %}
-  Welcome, {{userNickName}} (<a href="{{logout_url}}">sign out</a>)
-{% else %}
-  <a href="{{login_url}}">Sign in or register</a>
-{% endif %}
-
 {% if repeat %}
 The name has been used, please use else name.
 {% endif %}
@@ -21,7 +15,6 @@ The name has been used, please use else name.
 </form>
 
 <br> the gamename has been used: {{show}}
-<a href="bj/onlineUsers"></br>See who is playing</a>
 
 </body>
 </html>
